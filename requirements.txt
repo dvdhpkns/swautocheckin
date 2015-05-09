@@ -10,3 +10,5 @@ ipdb==0.8
 requests==2.3.0
 selenium==2.42.1
 redis==2.10.3
+django-debug-toolbar
+wsgiref==0.1.2

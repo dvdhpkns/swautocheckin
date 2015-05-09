@@ -12,7 +12,7 @@ from django.conf import settings
 logger = get_task_logger(__name__)
 
 # set the default Django settings module for the 'celery' program.
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'swautocheckin.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'swautocheckin.settings.dev')
 
 app = Celery('swautocheckin')
 
@@ -34,9 +34,10 @@ def _retry_checkin(reservation):
         checkin_job.retry(args=[reservation.id])
     except MaxRetriesExceededError:
         _checkin_fail(reservation)
+        return False
 
 
-@task(ignore_result=False, default_retry_delay=10, max_retries=10)
+@task(ignore_result=False, default_retry_delay=3, max_retries=10)
 def checkin_job(reservation_id):
     from swautocheckin.models import Reservation
     reservation = Reservation.objects.get(id=reservation_id)

@@ -52,6 +52,8 @@ def reservation_view(request, passenger_id):
             flight_date = reservation_form.cleaned_data['flight_date']
             flight_time = reservation_form.cleaned_data['flight_time']
 
+            LOGGER.info("Creating reservation...")
+
             reservation = Reservation.objects.create(
                 passenger=passenger,
                 flight_date=flight_date,

@@ -21,6 +21,14 @@ Start redis
 
     # You can also configure launchd to start redis on login
     redis-server /usr/local/etc/redis.conf 
+    
+Sync DB
+
+    ./manage.py syncdb
+    
+Create log file
+
+    
 
 ## Running
 

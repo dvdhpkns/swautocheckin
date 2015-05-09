@@ -22,12 +22,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'y*@+yh4&7@^t=#uppg-77ovc!7o#2yboej%x3%e90n)r#soplh'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
-
 ########## APP CONFIGURATION
 DJANGO_APPS = (
     # Default Django apps:
@@ -122,10 +116,20 @@ USE_L10N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.8/howto/static-files/
+# Honor the 'X-Forwarded-Proto' header for request.is_secure()
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# Allow all host headers
+ALLOWED_HOSTS = ['*']
+
+# Static asset configuration
+# https://docs.djangoproject.com/en/1.8/howto/static-files/
+STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
 
 LOGGING = {
     'version': 1,
@@ -157,7 +161,7 @@ LOGGING = {
         'log_file': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/django.log'),
+            'filename': os.path.join(BASE_DIR, '../logs/swautocheckin.log'),
             'maxBytes': '16777216',  # 16megabytes
             'formatter': 'verbose'
         },
@@ -169,7 +173,7 @@ LOGGING = {
             'propagate': True,
         },
         'swautocheckin': {
-            'handlers': ['console', 'mail_admins', 'log_file'],
+            'handlers': ['console', 'mail_admins'],
             'level': 'INFO',
         }
     }
@@ -182,14 +186,3 @@ BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
 BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
-ON_HEROKU = os.environ.get('ON_HEROKU')
-
-if ON_HEROKU:
-    # Parse database configuration from $DATABASE_URL
-    import dj_database_url
-
-    DATABASES['default'] = dj_database_url.config()
-
-if ON_HEROKU:
-    BROKER_URL = os.environ['REDISGREEN_URL'],
-    CELERY_RESULT_BACKEND = os.environ['REDISGREEN_URL']
