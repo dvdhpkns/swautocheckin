@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}SWACI{% endblock %}
+
+{% block styleblock %}
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h1>Success!</h1>
+
+            <p class="lead ">You will be automatically checked in for you flight 24 hours before flight time.
+                An email will be sent to <strong>{{ reservation.passenger.email }}</strong> with your boarding pass.</p>
+        </div>
+    </div>
+    <div class="row res-dets">
+        <dl class="dl-horizontal">
+            <dt>First Name</dt>
+            <dd>{{ reservation.passenger.first_name }}</dd>
+            <dt>Last Name</dt>
+            <dd>{{ reservation.passenger.last_name }}</dd>
+            <dt>Confirmation Code</dt>
+            <dd>{{ reservation.confirmation_num }}</dd>
+            <dt>Flight Date</dt>
+            <dd>{{ reservation.flight_date }}</dd>
+            <dt>Flight Time</dt>
+            <dd>{{ reservation.flight_time }}</dd>
+        </dl>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block jsblock %}
+
+{% endblock %}
