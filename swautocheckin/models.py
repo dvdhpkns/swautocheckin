@@ -1,9 +1,4 @@
-from datetime import timedelta, datetime
-
 from django.db import models
-from django.db.models.signals import post_save
-
-from swautocheckin import tasks
 
 
 class Passenger(models.Model):
@@ -22,6 +17,8 @@ class Reservation(models.Model):
     confirmation_num = models.CharField(max_length=13)
     flight_time = models.TimeField()
     flight_date = models.DateField()
+    task_id = models.CharField(max_length=64)
+    boarding_group = models.CharField(max_length=3)
     success = models.BooleanField(default=False)
 
     def __unicode__(self):
