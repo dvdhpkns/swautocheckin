@@ -18,7 +18,7 @@ body {
 
 .container {
     background: #fff;
-    padding: 2em;
+    padding: 0.5em;
     /*border-radius: 10px;*/
     max-width: 650px;
 }
