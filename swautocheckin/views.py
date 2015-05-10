@@ -12,7 +12,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 def email_view(request):
-    LOGGER.info("test")
     if request.method == 'POST':
         email_form = EmailForm(request.POST)
         if email_form.is_valid():

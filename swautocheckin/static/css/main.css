@@ -18,7 +18,7 @@ body {
 
 .container {
     background: #fff;
-    padding: 2em;
+    padding: 0.5em;
     /*border-radius: 10px;*/
     max-width: 650px;
 }
@@ -62,9 +62,11 @@ input:not(:last-child) {
 }
 
 .dl-horizontal dt {
-    width: 280px;
+    width: 50%;
+    padding-right: 15px;
+    padding-left: 15px;
 }
 
 .dl-horizontal dd {
-    margin-left: 300px;
+    padding-left: 15px;
 }
