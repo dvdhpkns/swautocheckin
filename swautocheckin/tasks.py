@@ -44,14 +44,17 @@ def checkin_job(reservation_id):
     logger.info("Attempting checkin for " + reservation.__str__())
     logger.info('Attempt: ' + str(checkin_job.request.retries + 1))
 
-    response_code, content = checkin.attempt_checkin(reservation.confirmation_num, reservation.passenger.first_name,
-                                                     reservation.passenger.last_name, reservation.passenger.email)
+    response_code, boarding_position = checkin.attempt_checkin(reservation.confirmation_num,
+                                                           reservation.passenger.first_name,
+                                                           reservation.passenger.last_name,
+                                                           reservation.passenger.email)
 
     if response_code == RESPONSE_STATUS_SUCCESS.code:
         logger.info("Successfully checked in for reservation: " + reservation.__str__())
         logger.info('Time: ' + str(datetime.now().time()))
         logger.info('Reservation time: ' + str(reservation.flight_time))
         reservation.success = True
+        reservation.boarding_position = boarding_position
         reservation.save()
         return True
     elif response_code == RESPONSE_STATUS_TOO_EARLY.code:

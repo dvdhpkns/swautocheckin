@@ -24,11 +24,7 @@ Start redis
     
 Sync DB
 
-    ./manage.py syncdb
-    
-Create log file
-
-    
+    ./manage.py migrate 
 
 ## Running
 

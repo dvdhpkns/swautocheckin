@@ -17,7 +17,7 @@ def email_view(request):
         if email_form.is_valid():
             form_email = email_form.cleaned_data['email']
             passenger, created = Passenger.objects.get_or_create(email=form_email)
-            return HttpResponseRedirect(reverse('reservation', args=[passenger.id]))
+            return HttpResponseRedirect(reverse('reservation', args=[passenger.uuid]))
 
     else:
         email_form = EmailForm()
@@ -38,8 +38,8 @@ def _get_checkin_time(reservation):
     return checkin_time
 
 
-def reservation_view(request, passenger_id):
-    passenger = get_object_or_404(Passenger, id=passenger_id)
+def reservation_view(request, passenger_uuid):
+    passenger = get_object_or_404(Passenger, uuid=passenger_uuid)
 
     if request.method == 'POST':
         reservation_form = ReservationForm(request.POST)
@@ -60,11 +60,13 @@ def reservation_view(request, passenger_id):
                 confirmation_num=confirmation_num
             )
 
+            # schedule checkin for 24 hours before reservation
             checkin_time = _get_checkin_time(reservation)
+            result = tasks.checkin_job.apply_async(args=[reservation.id], eta=checkin_time)
+            reservation.task_id = result.id
+            reservation.save()
 
-            tasks.checkin_job.apply_async(args=[reservation.id], eta=checkin_time)
-
-            return HttpResponseRedirect(reverse('success', args=[reservation.id]))
+            return HttpResponseRedirect(reverse('success', args=[reservation.uuid]))
     else:
         reservation_form = ReservationForm(
             initial={
@@ -79,8 +81,8 @@ def reservation_view(request, passenger_id):
     })
 
 
-def success_view(request, reservation_id):
-    reservation = get_object_or_404(Reservation, id=reservation_id)
+def success_view(request, reservation_uuid):
+    reservation = get_object_or_404(Reservation, uuid=reservation_uuid)
     return render(request, 'success.html', {
         'reservation': reservation
     })

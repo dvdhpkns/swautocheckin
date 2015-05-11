@@ -12,3 +12,5 @@ selenium==2.42.1
 redis==2.10.3
 django-debug-toolbar
 wsgiref==0.1.2
+lxml==3.4.4
+uuid==1.30

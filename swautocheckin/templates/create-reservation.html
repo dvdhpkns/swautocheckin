@@ -15,7 +15,7 @@
 
     <div class="row">
         <div class="col-lg-12">
-            <form id="res_form" action="{% if passenger %}{% url 'reservation' passenger.id %}{% else %}#{% endif %}"
+            <form id="res_form" action="{% if passenger %}{% url 'reservation' passenger.uuid %}{% else %}#{% endif %}"
                   method="post" class="form-horizontal">
                 {% csrf_token %}
                 {% if reservation_form.non_field_errors %}

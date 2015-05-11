@@ -1,7 +1,7 @@
 import logging
+
 import requests
-from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
+from lxml import html
 
 DOC_DELIVERY_URL = "https://www.southwest.com/flight/selectCheckinDocDelivery.html"
 
@@ -55,23 +55,23 @@ def attempt_checkin(confirmation_num, first_name, last_name, email, do_checkin=T
     if response.status_code is 200 or response.status_code is 304:
         if response.content.find(RESPONSE_STATUS_SUCCESS.search_string) is not -1:
             if do_checkin:
-                _complete_checkin(session, email, confirmation_num)
-            return RESPONSE_STATUS_SUCCESS.code, response.content
+                boarding_position = _complete_checkin(session, email, confirmation_num)
+            return RESPONSE_STATUS_SUCCESS.code, boarding_position
         elif response.content.find(RESPONSE_STATUS_TOO_EARLY.search_string) is not -1:
             # more than 24 hours before
             logger.info('Checking in too early for reservation ' + confirmation_num)
-            return RESPONSE_STATUS_TOO_EARLY.code, response.content
+            return RESPONSE_STATUS_TOO_EARLY.code, None
         elif response.content.find(RESPONSE_STATUS_INVALID.search_string) is not -1:
             # invalid format
             logger.info('Invalid confirmation number ' + confirmation_num)
-            return RESPONSE_STATUS_INVALID.code, response.content
+            return RESPONSE_STATUS_INVALID.code, None
         elif response.content.find(RESPONSE_STATUS_RES_NOT_FOUND.search_string) is not -1:
             # incorrect name or confirmation number
             logger.info("Can't find reservation in data base " + confirmation_num)
-            return RESPONSE_STATUS_RES_NOT_FOUND.code, response.content
+            return RESPONSE_STATUS_RES_NOT_FOUND.code, None
         elif response.content.find(RESPONSE_STATUS_INVALID_PASSENGER_NAME.search_string) is not -1:
             logger.info("Invalid passenger name " + confirmation_num)
-            return RESPONSE_STATUS_INVALID_PASSENGER_NAME.code, response.content
+            return RESPONSE_STATUS_INVALID_PASSENGER_NAME.code, None
         else:
             logger.error('WTF: unhandled response.')
 
@@ -81,7 +81,7 @@ def attempt_checkin(confirmation_num, first_name, last_name, email, do_checkin=T
     filename = './res_WTF_' + str(confirmation_num) + '_content.html'
     print >> open(filename, 'w+'), response.content.replace("/assets", "http://southwest.com/assets")
     logger.error(response.content)
-    return RESPONSE_STATUS_UNKNOWN_FAILURE.code, response.content
+    return RESPONSE_STATUS_UNKNOWN_FAILURE.code, None
 
 
 def _complete_checkin(session, email, confirmation_num):
@@ -94,6 +94,12 @@ def _complete_checkin(session, email, confirmation_num):
 
     if print_response.status_code is 200:
         if print_response.content.find("You are Checked In") is not -1:
+            tree = html.fromstring(print_response.content)
+
+            # returns an array with el[0] = boarding group, el[1] = boarding number. Example ['A', '34']
+            boarding_info = tree.xpath('//span[@class="boardingInfo"]/text()')
+            boarding_position = boarding_info[0] + boarding_info[1]
+
             doc_payload = {
                 '_optionPrint': 'on',
                 'optionEmail': True,
@@ -104,10 +110,11 @@ def _complete_checkin(session, email, confirmation_num):
             }
 
             doc_response = session.post(DOC_DELIVERY_URL, data=doc_payload)
+
             if doc_response.status_code is 200:
                 if doc_response.content.find("Boarding Pass Confirmation") is not -1:
                     logger.info("Success checking in confirmation number: " + confirmation_num)
-                    return
+                    return boarding_position
                 else:
                     filename = './print_WTF_' + str(confirmation_num) + '_content.html'
                     print >> open(filename, 'w+'), doc_response.content.replace("/assets",
