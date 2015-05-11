@@ -59,22 +59,22 @@ class ReservationForm(forms.Form):
         last_name = cleaned_data.get("last_name")
         conf_num = cleaned_data.get("confirmation_num")
 
-        # if first_name and last_name and conf_num:
-        #     response_code, content = checkin.attempt_checkin(conf_num, first_name, last_name, email, do_checkin=False)
-        #     if response_code is RESPONSE_STATUS_INVALID.code:
-        #         msg = u"Invalid confirmation code."
-        #         self._errors["confirmation_num"] = self.error_class([msg])
-        #         del cleaned_data["confirmation_num"]
-        #     elif response_code is RESPONSE_STATUS_RES_NOT_FOUND.code:
-        #         raise forms.ValidationError("Reservation not found.")
-        #     elif response_code is RESPONSE_STATUS_INVALID_PASSENGER_NAME.code:
-        #         raise forms.ValidationError("Passenger name does not match confirmation code.")
-        #     elif response_code is RESPONSE_STATUS_SUCCESS.code:
-        #         pass  # todo handle successful checkin
-        #     elif response_code is RESPONSE_STATUS_TOO_EARLY.code:
-        #         pass
-        #     else:
-        #         raise forms.ValidationError("Error while looking up reservation.")
+        if first_name and last_name and conf_num:
+            response_code, boarding_position = checkin.attempt_checkin(conf_num, first_name, last_name, email, do_checkin=False)
+            if response_code is RESPONSE_STATUS_INVALID.code:
+                msg = u"Invalid confirmation code."
+                self._errors["confirmation_num"] = self.error_class([msg])
+                del cleaned_data["confirmation_num"]
+            elif response_code is RESPONSE_STATUS_RES_NOT_FOUND.code:
+                raise forms.ValidationError("Reservation not found.")
+            elif response_code is RESPONSE_STATUS_INVALID_PASSENGER_NAME.code:
+                raise forms.ValidationError("Passenger name does not match confirmation code.")
+            elif response_code is RESPONSE_STATUS_SUCCESS.code:
+                pass  # todo handle successful checkin
+            elif response_code is RESPONSE_STATUS_TOO_EARLY.code:
+                pass
+            else:
+                raise forms.ValidationError("Error while looking up reservation.")
 
         # Always return the full collection of cleaned data.
         return cleaned_data
