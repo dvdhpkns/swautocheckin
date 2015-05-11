@@ -90,6 +90,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'swautocheckin.wsgi.application'
 
+SITE = 2
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases

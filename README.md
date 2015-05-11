@@ -25,6 +25,14 @@ Start redis
 Sync DB
 
     ./manage.py migrate 
+    
+Add local host to sites
+
+    python manage.py shell
+    
+    # add a new site to sites - the ID of this should match the SITES value in settings
+    from django.contrib.sites.models import Site
+    new_site = Site.objects.create(domain='localhost:8000', name='localhost')
 
 ## Running
 
@@ -41,4 +49,4 @@ Start Celery
 Alternatively, you can start both the server and Celery using foreman
 
     foreman start -p 8000
-
+    

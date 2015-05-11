@@ -22,7 +22,7 @@ class Reservation(models.Model):
     flight_date = models.DateField()
     task_id = models.CharField(max_length=64)
     boarding_position = models.CharField(max_length=3)
-    success = models.BooleanField(default=False)
+    success = models.NullBooleanField(blank=True, null=True, default=None)
 
     def __unicode__(self):
         return u'%s. %s: %s' % (self.id, self.passenger, self.flight_date)
