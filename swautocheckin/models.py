@@ -20,9 +20,11 @@ class Reservation(models.Model):
     confirmation_num = models.CharField(max_length=13)
     flight_time = models.TimeField()
     flight_date = models.DateField()
-    task_id = models.CharField(max_length=64)
-    boarding_position = models.CharField(max_length=3)
+    task_id = models.CharField(max_length=64, blank=True, null=True)
+    boarding_position = models.CharField(max_length=3, blank=True, null=True)
     success = models.NullBooleanField(blank=True, null=True, default=None)
+    child_reservations = models.ManyToManyField("self", symmetrical=False, blank=True, default=None,)
+                                                # limit_choices_to={"confirmation_num": confirmation_num})
 
     def __unicode__(self):
         return u'%s. %s: %s' % (self.id, self.passenger, self.flight_date)
