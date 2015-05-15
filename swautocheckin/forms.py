@@ -14,7 +14,7 @@ class EmailForm(forms.Form):
 class ReservationForm(forms.Form):
     email = forms.CharField()
     email.widget.attrs['class'] = 'form-control input-lg'
-    email.widget.attrs['readonly'] = 'true'
+    email.widget.attrs['readonly'] = True
 
     first_name = forms.CharField(max_length=30)
     first_name.widget.attrs['class'] = 'form-control input-lg'
@@ -35,11 +35,33 @@ class ReservationForm(forms.Form):
     flight_date.input_formats = ['%m/%d/%Y']
 
     flight_time = forms.TimeField()
-    flight_time.widget.attrs['placeholder'] = 'Ex. 7:30 pm'
+    flight_time.widget.attrs['placeholder'] = 'Ex. 7:30 pm (Pacific Standard Time)'
     flight_time.help_text = "Pacific Standard Time"
     flight_time.widget.attrs['class'] = 'form-control input-lg'
     flight_time.label = 'Flight Time'
     flight_time.input_formats = ['%H:%M', '%I:%M%p', '%I:%M %p']
+
+    # return_flight_date = forms.DateField()
+    # return_flight_date.required = False
+    # return_flight_date.widget.attrs['class'] = 'form-control input-lg'
+    # return_flight_date.widget.attrs['placeholder'] = 'Optional'
+    # return_flight_date.label = 'Return Flight Date'
+    # return_flight_date.input_formats = ['%m/%d/%Y']
+    #
+    # return_flight_time = forms.TimeField()
+    # return_flight_time.required = False
+    # return_flight_time.widget.attrs['placeholder'] = 'Optional'
+    # return_flight_time.help_text = "Pacific Standard Time"
+    # return_flight_time.widget.attrs['class'] = 'form-control input-lg'
+    # return_flight_time.label = 'Return Flight Time'
+    # return_flight_time.input_formats = ['%H:%M', '%I:%M%p', '%I:%M %p']
+
+    def __init__(self, *args, **kwargs):
+        super(ReservationForm, self).__init__(*args, **kwargs)
+        if self.data.get('last_name') or (kwargs.get("initial") and kwargs.get("initial").get("last_name")):
+            self.fields['last_name'].widget.attrs['readonly'] = True
+        if self.data.get('first_name') or (kwargs.get("initial") and kwargs.get("initial").get("first_name")):
+            self.fields['first_name'].widget.attrs['readonly'] = True
 
     class Meta:
         fieldsets = (
@@ -49,6 +71,10 @@ class ReservationForm(forms.Form):
 
             ('Flight Information', {
                 'fields': ('confirmation_num', 'flight_date', 'flight_time')
+            }),
+
+            ('Return Flight Information', {
+                'fields': ('return_flight_date', 'return_flight_time')
             }),
         )
 

@@ -44,9 +44,13 @@ def reservation_view(request, passenger_uuid):
     if request.method == 'POST':
         reservation_form = ReservationForm(request.POST)
         if reservation_form.is_valid():
-            passenger.first_name = reservation_form.cleaned_data['first_name']
-            passenger.last_name = reservation_form.cleaned_data['last_name']
-            passenger.save()
+            if passenger.first_name != reservation_form.cleaned_data['first_name'] \
+                    or passenger.last_name != reservation_form.cleaned_data['last_name']:
+                LOGGER.info("Updating passenger name...")
+                passenger.first_name = reservation_form.cleaned_data['first_name']
+                passenger.last_name = reservation_form.cleaned_data['last_name']
+                passenger.save()
+
             confirmation_num = reservation_form.cleaned_data['confirmation_num']
             flight_date = reservation_form.cleaned_data['flight_date']
             flight_time = reservation_form.cleaned_data['flight_time']
