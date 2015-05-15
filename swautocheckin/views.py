@@ -1,12 +1,12 @@
-from datetime import datetime, timedelta
 import logging
+
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
-from swautocheckin import tasks
 
 from swautocheckin.forms import EmailForm, ReservationForm
-from swautocheckin.models import Passenger, Reservation
+from swautocheckin.models import Passenger, Reservation, create_reservation
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -27,17 +27,6 @@ def email_view(request):
     })
 
 
-def _get_checkin_time(reservation):
-    checkin_time = datetime.combine(
-        (reservation.flight_date - timedelta(days=1)),  # Subtract 24 hours for checkin time
-        reservation.flight_time
-    )
-    # todo is utc 7 hours during daylight savings?
-    checkin_time += timedelta(hours=7)  # Add 7 hours for UTC
-    # checkin_time -= timedelta(seconds=30)  # Start trying 30 seconds
-    return checkin_time
-
-
 def reservation_view(request, passenger_uuid):
     passenger = get_object_or_404(Passenger, uuid=passenger_uuid)
 
@@ -54,21 +43,12 @@ def reservation_view(request, passenger_uuid):
             confirmation_num = reservation_form.cleaned_data['confirmation_num']
             flight_date = reservation_form.cleaned_data['flight_date']
             flight_time = reservation_form.cleaned_data['flight_time']
-
-            LOGGER.info("Creating reservation...")
-
-            reservation = Reservation.objects.create(
-                passenger=passenger,
-                flight_date=flight_date,
-                flight_time=flight_time,
-                confirmation_num=confirmation_num
-            )
-
-            # schedule checkin for 24 hours before reservation
-            checkin_time = _get_checkin_time(reservation)
-            result = tasks.checkin_job.apply_async(args=[reservation.id], eta=checkin_time)
-            reservation.task_id = result.id
-            reservation.save()
+            return_flight_date = reservation_form.cleaned_data['return_flight_date']
+            return_flight_time = reservation_form.cleaned_data['return_flight_time']
+            return_reservation = None
+            if return_flight_time and return_flight_time:
+                return_reservation = create_reservation(confirmation_num, return_flight_date, return_flight_time, passenger)
+            reservation = create_reservation(confirmation_num, flight_date, flight_time, passenger, return_reservation=return_reservation)
 
             return HttpResponseRedirect(reverse('success', args=[reservation.uuid]))
     else:

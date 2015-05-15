@@ -28,6 +28,12 @@
             <dd>{{ reservation.flight_date }}</dd>
             <dt>Flight Time</dt>
             <dd>{{ reservation.flight_time }}</dd>
+            {% if reservation.child_reservations.all %}
+            <dt>Return Flight Date</dt>
+            <dd>{{ reservation.child_reservations.all.0.flight_date }}</dd>
+            <dt>Return Flight Time</dt>
+            <dd>{{ reservation.child_reservations.all.0.flight_time }}</dd>
+            {% endif %}
         </dl>
     </div>
 

@@ -41,20 +41,20 @@ class ReservationForm(forms.Form):
     flight_time.label = 'Flight Time'
     flight_time.input_formats = ['%H:%M', '%I:%M%p', '%I:%M %p']
 
-    # return_flight_date = forms.DateField()
-    # return_flight_date.required = False
-    # return_flight_date.widget.attrs['class'] = 'form-control input-lg'
-    # return_flight_date.widget.attrs['placeholder'] = 'Optional'
-    # return_flight_date.label = 'Return Flight Date'
-    # return_flight_date.input_formats = ['%m/%d/%Y']
-    #
-    # return_flight_time = forms.TimeField()
-    # return_flight_time.required = False
-    # return_flight_time.widget.attrs['placeholder'] = 'Optional'
-    # return_flight_time.help_text = "Pacific Standard Time"
-    # return_flight_time.widget.attrs['class'] = 'form-control input-lg'
-    # return_flight_time.label = 'Return Flight Time'
-    # return_flight_time.input_formats = ['%H:%M', '%I:%M%p', '%I:%M %p']
+    return_flight_date = forms.DateField()
+    return_flight_date.required = False
+    return_flight_date.widget.attrs['class'] = 'form-control input-lg'
+    return_flight_date.widget.attrs['placeholder'] = 'Optional'
+    return_flight_date.label = 'Return Flight Date'
+    return_flight_date.input_formats = ['%m/%d/%Y']
+
+    return_flight_time = forms.TimeField()
+    return_flight_time.required = False
+    return_flight_time.widget.attrs['placeholder'] = 'Optional'
+    return_flight_time.help_text = "Pacific Standard Time"
+    return_flight_time.widget.attrs['class'] = 'form-control input-lg'
+    return_flight_time.label = 'Return Flight Time'
+    return_flight_time.input_formats = ['%H:%M', '%I:%M%p', '%I:%M %p']
 
     def __init__(self, *args, **kwargs):
         super(ReservationForm, self).__init__(*args, **kwargs)
@@ -84,6 +84,18 @@ class ReservationForm(forms.Form):
         first_name = cleaned_data.get("first_name")
         last_name = cleaned_data.get("last_name")
         conf_num = cleaned_data.get("confirmation_num")
+
+        return_flight_time = cleaned_data.get("return_flight_time")
+        return_flight_date = cleaned_data.get("return_flight_date")
+        if return_flight_time and not return_flight_date:
+            msg = u"Required with return flight time."
+            self._errors["return_flight_date"] = self.error_class([msg])
+            del cleaned_data["return_flight_date"]
+
+        if return_flight_date and not return_flight_time:
+            msg = u"Required with return flight date."
+            self._errors["return_flight_time"] = self.error_class([msg])
+            del cleaned_data["return_flight_time"]
 
         if first_name and last_name and conf_num:
             response_code, boarding_position = checkin.attempt_checkin(conf_num, first_name, last_name, email, do_checkin=False)
