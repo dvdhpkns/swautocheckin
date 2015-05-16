@@ -93,3 +93,10 @@ def handler404(request):
                   {"title": "You seem lost.", "body": "You lost, bro? We can't find the page you're looking for."},
                   context_instance=RequestContext(request),
                   status=404)
+
+
+def handler400(request):
+    return render(request, 'error.html',
+                  {"title": "Bad Request.", "body": "That request was no good. Try something different."},
+                  context_instance=RequestContext(request),
+                  status=400)

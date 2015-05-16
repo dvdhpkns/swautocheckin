@@ -13,3 +13,4 @@ urlpatterns = [
 
 handler404 = 'swautocheckin.views.handler404'
 handler500 = 'swautocheckin.views.handler500'
+handler400 = 'swautocheckin.views.handler400'
