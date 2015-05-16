@@ -1,10 +1,13 @@
 import logging
 
 from django.core.urlresolvers import reverse
-from django.shortcuts import render, get_object_or_404
+
+from django.shortcuts import render, get_object_or_404, render_to_response
 from django.http import HttpResponseRedirect
+from django.template import RequestContext
 
 from swautocheckin.forms import EmailForm, ReservationForm
+
 from swautocheckin.models import Passenger, Reservation, create_reservation
 
 
@@ -47,8 +50,10 @@ def reservation_view(request, passenger_uuid):
             return_flight_time = reservation_form.cleaned_data['return_flight_time']
             return_reservation = None
             if return_flight_time and return_flight_time:
-                return_reservation = create_reservation(confirmation_num, return_flight_date, return_flight_time, passenger)
-            reservation = create_reservation(confirmation_num, flight_date, flight_time, passenger, return_reservation=return_reservation)
+                return_reservation = create_reservation(confirmation_num, return_flight_date, return_flight_time,
+                                                        passenger)
+            reservation = create_reservation(confirmation_num, flight_date, flight_time, passenger,
+                                             return_reservation=return_reservation)
 
             return HttpResponseRedirect(reverse('success', args=[reservation.uuid]))
     else:
@@ -71,3 +76,20 @@ def success_view(request, reservation_uuid):
         'reservation': reservation
     })
 
+
+def force_error_view(request):
+    raise Exception("You've intentionally thrown an exception.")
+
+
+def handler500(request):
+    return render(request, 'error.html',
+                  {'title': "Our bad.", 'body': "Something went wrong. Please try again."},
+                  context_instance=RequestContext(request),
+                  status=500)
+
+
+def handler404(request):
+    return render(request, 'error.html',
+                  {"title": "You seem lost.", "body": "You lost, bro? We can't find the page you're looking for."},
+                  context_instance=RequestContext(request),
+                  status=404)
