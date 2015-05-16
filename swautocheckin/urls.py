@@ -9,6 +9,7 @@ urlpatterns = [
 
     url(r'^error$', views.force_error_view),
     url(r'^admin/', include(admin.site.urls)),
+    # url(r'^sentry/', include('sentry.web.urls')),
 ]
 
 handler404 = 'swautocheckin.views.handler404'

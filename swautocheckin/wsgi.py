@@ -11,7 +11,8 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 from whitenoise.django import DjangoWhiteNoise
+from raven.contrib.django.raven_compat.middleware.wsgi import Sentry
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "swautocheckin.settings.dev")
 
-application = DjangoWhiteNoise(get_wsgi_application())
+application = Sentry(DjangoWhiteNoise(get_wsgi_application()))

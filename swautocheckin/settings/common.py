@@ -16,6 +16,8 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+SITE_ID = 2
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
@@ -185,7 +187,7 @@ LOGGING = {
 # ---------- celery config -----------#
 BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
 
-#local settings
+# local settings
 BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
