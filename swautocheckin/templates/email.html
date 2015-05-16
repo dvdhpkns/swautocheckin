@@ -19,9 +19,9 @@
         <form id="email_form" action="{% url 'email' %}" method="post" class="form-horizontal">
             {% csrf_token %}
             <div class="form-group">
-                <div class="col-sm-8 col-sm-offset-1" style="padding-right: 0px;">{{ email_form.email }}</div>
-                <div class="col-sm-2"><input type="submit" value="Continue" form="email_form"
-                                             class="input-lg btn btn-default"/></div>
+                <div class="col-sm-9">{{ email_form.email }}</div>
+                <div class="col-sm-3 email-div"><input type="submit" value="Continue" form="email_form"
+                                             class="input-lg btn btn-default btn-block"/></div>
 
             </div>
 

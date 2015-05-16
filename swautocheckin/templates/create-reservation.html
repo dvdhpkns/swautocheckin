@@ -4,14 +4,13 @@
 {% block title %}Create SWACI{% endblock %}
 
 {% block styleblock %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/datepicker.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'css/libs/datepicker.css' %}"/>
 {% endblock %}
 
 
 {% block content %}
 
 <div class="container flight-input">
-    <!--<h2 style="text-align:center">Flight Information</h2>-->
 
     <div class="row">
         <div class="col-lg-12">
@@ -63,7 +62,7 @@
 {% block jsblock %}
 
 <!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="{% static 'js/bootstrap-datepicker.js' %}" type="text/javascript"></script>
+<script src="{% static 'js/libs/bootstrap-datepicker.js' %}" type="text/javascript"></script>
 <script src="{% static 'js/create-reservation.js' %}" type="text/javascript"></script>
 
 <script>

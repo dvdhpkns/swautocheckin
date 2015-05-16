@@ -15,7 +15,7 @@
             <p class="lead ">You can sit back and relax &#8212 we will automatically check you in 24 hours before takeoff.
                 An email will be sent to <strong>{{ reservation.passenger.email }}</strong> with your boarding pass.</p>
         </div>
-        <div class="col-md-8 col-md-offset-2" style="text-align:center">
+        <div class="col-md-8 col-md-offset-2 nav-link" >
             <a href="{% url 'reservation' reservation.passenger.uuid %}"><< Add Another Flight</a>
         </div>
     </div>

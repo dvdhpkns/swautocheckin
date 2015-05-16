@@ -1,6 +1,5 @@
 body {
   padding-top: 20px;
-  /*background: #eee;*/
   font-size: 18px;
   line-height: 1.3;
   color: #4d4d4d;
@@ -24,6 +23,7 @@ body {
 }
 
 .about {
+    padding: 10px;
     text-align: center;
 }
 
@@ -90,4 +90,14 @@ input:not(:last-child) {
     .footer {
         position: relative;
     }
+}
+
+@media (min-width: 768px) {
+    .email-div {
+      margin-left: -15px;
+    }
+}
+
+.nav-link {
+    text-align: center
 }
