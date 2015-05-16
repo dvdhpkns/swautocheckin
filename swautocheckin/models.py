@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta
 import logging
+from celery.result import AsyncResult
 from django.db import models
 import uuid
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 from swautocheckin import tasks
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,11 +33,47 @@ class Reservation(models.Model):
     task_id = models.CharField(max_length=64, blank=True, null=True)
     boarding_position = models.CharField(max_length=3, blank=True, null=True)
     success = models.NullBooleanField(blank=True, null=True, default=None)
-    child_reservations = models.ManyToManyField("self", symmetrical=False, blank=True, default=None,)
-                                                # limit_choices_to={"confirmation_num": confirmation_num})
+    child_reservations = models.ManyToManyField("self", symmetrical=False, blank=True, default=None, )
+    # limit_choices_to={"confirmation_num": confirmation_num})
 
     def __unicode__(self):
         return u'%s. %s: %s' % (self.id, self.passenger, self.flight_date)
+
+    def revoke_task(self, update=False):
+        if self.task_id:
+            LOGGER.info("Deleting task " + self.task_id)
+            result = AsyncResult(self.task_id)
+            result.revoke()
+            if update:
+                self.task_id = None
+                self.success = False
+                self.save()
+
+    def create_task(self):
+        # revoke task if one already exists
+        self.revoke_task()
+        LOGGER.info("Creating task for " + self.__str__())
+        # schedule checkin for 24 hours before reservation
+        checkin_time = self._get_checkin_time()
+        result = tasks.checkin_job.apply_async(args=[self.id], eta=checkin_time)
+        self.task_id = result.id
+        self.success = None
+        self.save()
+
+    def _get_checkin_time(self):
+        checkin_time = datetime.combine(
+            (self.flight_date - timedelta(days=1)),  # Subtract 24 hours for checkin time
+            self.flight_time
+        )
+        # todo is utc 7 hours during daylight savings?
+        checkin_time += timedelta(hours=7)  # Add 7 hours for UTC
+        # checkin_time -= timedelta(seconds=30)  # Start trying 30 seconds
+        return checkin_time
+
+
+@receiver(pre_delete, sender=Reservation)
+def pre_delete_revoke_task(sender, instance, using, **kwargs):
+    instance.revoke_task()
 
 
 def create_reservation(confirmation_num, flight_date, flight_time, passenger, return_reservation=None):
@@ -49,20 +87,8 @@ def create_reservation(confirmation_num, flight_date, flight_time, passenger, re
     )
     if return_reservation:
         reservation.child_reservations.add(return_reservation)
-    # schedule checkin for 24 hours before reservation
-    checkin_time = _get_checkin_time(reservation)
-    result = tasks.checkin_job.apply_async(args=[reservation.id], eta=checkin_time)
-    reservation.task_id = result.id
-    reservation.save()
+    reservation.create_task()
     return reservation
 
 
-def _get_checkin_time(reservation):
-    checkin_time = datetime.combine(
-        (reservation.flight_date - timedelta(days=1)),  # Subtract 24 hours for checkin time
-        reservation.flight_time
-    )
-    # todo is utc 7 hours during daylight savings?
-    checkin_time += timedelta(hours=7)  # Add 7 hours for UTC
-    # checkin_time -= timedelta(seconds=30)  # Start trying 30 seconds
-    return checkin_time
+
