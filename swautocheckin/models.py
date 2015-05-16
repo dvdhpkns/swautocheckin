@@ -16,12 +16,14 @@ class Passenger(models.Model):
     email = models.EmailField()
 
     def __unicode__(self):
-        return u'%s %s' % (self.first_name, self.last_name)
+        return u'%s %s - %s' % (self.first_name, self.last_name, self.email)
 
 
 class Reservation(models.Model):
     """Flight reservation information."""
     uuid = models.UUIDField(default=uuid.uuid4, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
     passenger = models.ForeignKey(Passenger)
     confirmation_num = models.CharField(max_length=13)
     flight_time = models.TimeField()
