@@ -55,6 +55,7 @@ class Reservation(models.Model):
         LOGGER.info("Creating task for " + self.__str__())
         # schedule checkin for 24 hours before reservation
         checkin_time = self._get_checkin_time()
+        LOGGER.info("Checkin time is " + checkin_time.__str__())
         result = tasks.checkin_job.apply_async(args=[self.id], eta=checkin_time)
         self.task_id = result.id
         self.success = None
