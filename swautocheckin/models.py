@@ -68,7 +68,7 @@ class Reservation(models.Model):
         )
         # todo is utc 7 hours during daylight savings?
         checkin_time += timedelta(hours=7)  # Add 7 hours for UTC
-        # checkin_time -= timedelta(seconds=30)  # Start trying 30 seconds
+        checkin_time -= timedelta(seconds=10)  # Start trying 30 seconds
         return checkin_time
 
 
