@@ -35,7 +35,7 @@ class ReservationForm(forms.Form):
     flight_date.input_formats = ['%m/%d/%Y']
 
     flight_time = forms.TimeField()
-    flight_time.widget.attrs['placeholder'] = 'Ex. 7:30 pm (Pacific Standard Time)'
+    flight_time.widget.attrs['placeholder'] = 'Pacific Standard Time - Ex. 7:30 pm'
     flight_time.help_text = "Pacific Standard Time"
     flight_time.widget.attrs['class'] = 'form-control input-lg'
     flight_time.label = 'Flight Time'
