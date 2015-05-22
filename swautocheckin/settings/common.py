@@ -163,13 +163,13 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
-        # 'log_file': {
-        #     'level': 'DEBUG',
-        #     'class': 'logging.handlers.RotatingFileHandler',
-        #     'filename': os.path.join(BASE_DIR, '../logs/swautocheckin.log'),
-        #     'maxBytes': '16777216',  # 16megabytes
-        #     'formatter': 'verbose'
-        # },
+        'log_file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, '../logs/swautocheckin.log'),
+            'maxBytes': '16777216',  # 16megabytes
+            'formatter': 'verbose'
+        },
     },
     'loggers': {
         'django.request': {
@@ -178,7 +178,7 @@ LOGGING = {
             'propagate': True,
         },
         'swautocheckin': {
-            'handlers': ['console', 'mail_admins'],
+            'handlers': ['console', 'mail_admins', 'log_file'],
             'level': 'INFO',
         }
     }
