@@ -54,6 +54,8 @@ def attempt_checkin(confirmation_num, first_name, last_name, email, do_checkin=T
 
     if response.status_code is 200 or response.status_code is 304:
         if response.content.find(RESPONSE_STATUS_SUCCESS.search_string) is not -1:
+            # must initialize for the case when flight on res is already less than 24 hrs away
+            boarding_position = None
             if do_checkin:
                 boarding_position = _complete_checkin(session, email, confirmation_num)
             return RESPONSE_STATUS_SUCCESS.code, boarding_position
