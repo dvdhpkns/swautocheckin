@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^reservation/(?P<reservation_uuid>[^/]+)/success$', views.success_view, name='success'),
 
     url(r'^error$', views.force_error_view),
+    url(r'^error$', views.force_error_view),
     url(r'^admin/', include(admin.site.urls)),
     # url(r'^sentry/', include('sentry.web.urls')),
 ]

@@ -77,7 +77,7 @@ def success_view(request, reservation_uuid):
     })
 
 
-def force_error_view(request):
+def force_error_view(request, task=False):
     LOGGER.error("Error view called")
     raise Exception("You've intentionally thrown an exception.")
 

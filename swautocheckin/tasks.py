@@ -72,3 +72,8 @@ def checkin_job(reservation_id):
     else:
         logger.error("Unknown error, retrying...")
         _retry_checkin(reservation)
+
+
+@task(ignore_result=False, default_retry_delay=3, max_retries=0)
+def error_task():
+    raise Exception("You've intentionally thrown a task exception.")

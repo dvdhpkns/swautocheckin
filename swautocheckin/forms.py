@@ -90,12 +90,10 @@ class ReservationForm(forms.Form):
         if return_flight_time and not return_flight_date:
             msg = u"Required with return flight time."
             self._errors["return_flight_date"] = self.error_class([msg])
-            del cleaned_data["return_flight_date"]
 
         if return_flight_date and not return_flight_time:
             msg = u"Required with return flight date."
             self._errors["return_flight_time"] = self.error_class([msg])
-            del cleaned_data["return_flight_time"]
 
         if first_name and last_name and conf_num:
             response_code, boarding_position = checkin.attempt_checkin(conf_num, first_name, last_name, email, do_checkin=False)
