@@ -1,15 +1,23 @@
 import logging
+from django.core.mail import send_mail
+from django.conf import settings
 
 import requests
 from lxml import html
 
 DOC_DELIVERY_URL = "https://www.southwest.com/flight/selectCheckinDocDelivery.html"
-
 PRINT_DOCUMENT_URL = "https://www.southwest.com/flight/selectPrintDocument.html"
-
-logger = logging.getLogger(__name__)
-
 SOUTHWEST_CHECKIN_URL = 'https://www.southwest.com/flight/retrieveCheckinDoc.html'
+
+PRINT_PAYLOAD = {
+    'checkinPassengers[0].selected': True,
+    'printDocuments': 'Check In'
+}
+
+LOGGER = logging.getLogger(__name__)
+
+# setting to allow easy toggle of printing content in logs
+LOG_CONTENT = False
 
 
 class ResponseStatus:
@@ -29,14 +37,13 @@ RESPONSE_STATUS_UNKNOWN_FAILURE = ResponseStatus(-100, None)
 
 def _post_to_southwest_checkin(confirmation_num, first_name, last_name):
     """
-
     :param confirmation_num:
     :param first_name:
     :param last_name:
     :return:
     """
     session = requests.Session()
-    get_response = session.get(SOUTHWEST_CHECKIN_URL)
+    session.get(SOUTHWEST_CHECKIN_URL)
 
     payload = {
         'confirmationNumber': confirmation_num,
@@ -61,38 +68,36 @@ def attempt_checkin(confirmation_num, first_name, last_name, email, do_checkin=T
             return RESPONSE_STATUS_SUCCESS.code, boarding_position
         elif response.content.find(RESPONSE_STATUS_TOO_EARLY.search_string) is not -1:
             # more than 24 hours before
-            logger.info('Checking in too early for reservation ' + confirmation_num)
+            LOGGER.info('Checking in too early for reservation ' + confirmation_num)
             return RESPONSE_STATUS_TOO_EARLY.code, None
         elif response.content.find(RESPONSE_STATUS_INVALID.search_string) is not -1:
             # invalid format
-            logger.info('Invalid confirmation number ' + confirmation_num)
+            LOGGER.info('Invalid confirmation number ' + confirmation_num)
             return RESPONSE_STATUS_INVALID.code, None
         elif response.content.find(RESPONSE_STATUS_RES_NOT_FOUND.search_string) is not -1:
             # incorrect name or confirmation number
-            logger.info("Can't find reservation in data base " + confirmation_num)
+            LOGGER.info("Can't find reservation in data base " + confirmation_num)
             return RESPONSE_STATUS_RES_NOT_FOUND.code, None
         elif response.content.find(RESPONSE_STATUS_INVALID_PASSENGER_NAME.search_string) is not -1:
-            logger.info("Invalid passenger name " + confirmation_num)
+            LOGGER.info("Invalid passenger name " + confirmation_num)
             return RESPONSE_STATUS_INVALID_PASSENGER_NAME.code, None
         else:
-            logger.error('WTF: unhandled response.')
+            LOGGER.error('WTF: unhandled response.')
 
     else:
-        logger.info('WTF received status other then 200 for ' + confirmation_num)
+        LOGGER.info('WTF received status other then 200 for ' + confirmation_num)
 
-    filename = './res_WTF_' + str(confirmation_num) + '_content.html'
-    print >> open(filename, 'w+'), response.content.replace("/assets", "http://southwest.com/assets")
-    logger.error(response.content)
+    # send email with response body if we get here.
+    _send_failure_email(confirmation_num, response,
+                        subject="Unknown response from checkin attempt, status " + str(response.status_code) + ": ")
+    if LOG_CONTENT:
+        LOGGER.error(response.content)
+
     return RESPONSE_STATUS_UNKNOWN_FAILURE.code, None
 
 
 def _complete_checkin(session, email, confirmation_num):
-    print_payload = {
-        'checkinPassengers[0].selected': True,
-        'printDocuments': 'Check In'
-    }
-
-    print_response = session.post(PRINT_DOCUMENT_URL, data=print_payload)
+    print_response = session.post(PRINT_DOCUMENT_URL, data=PRINT_PAYLOAD)
 
     if print_response.status_code is 200:
         if print_response.content.find("You are Checked In") is not -1:
@@ -103,11 +108,8 @@ def _complete_checkin(session, email, confirmation_num):
             boarding_position = boarding_info[0] + boarding_info[1]
 
             doc_payload = {
-                '_optionPrint': 'on',
-                'optionEmail': True,
-                '_optionEmail': 'on',
                 'emailAddress': email,
-                '_optionText': 'on',
+                'selectedOption': 'optionEmail',
                 # 'book_now':
             }
 
@@ -115,25 +117,38 @@ def _complete_checkin(session, email, confirmation_num):
 
             if doc_response.status_code is 200:
                 if doc_response.content.find("Boarding Pass Confirmation") is not -1:
-                    logger.info("Success checking in confirmation number: " + confirmation_num)
+                    LOGGER.info("Success checking in confirmation number: " + confirmation_num)
                     return boarding_position
                 else:
-                    filename = './print_WTF_' + str(confirmation_num) + '_content.html'
-                    print >> open(filename, 'w+'), doc_response.content.replace("/assets",
-                                                                                "http://southwest.com/assets")
-                    logger.error('Success message not found while posting to ' + DOC_DELIVERY_URL +
-                                 '\ncontent: ' + doc_response.content)
+                    _send_failure_email(confirmation_num, doc_response, subject="Failure with doc response: ")
+                    LOGGER.error('Success message not found while posting to ' + DOC_DELIVERY_URL +
+                                 (('\ncontent: ' + doc_response.content) if LOG_CONTENT else ""))
             else:
-                logger.error('Non-200 posting to ' + DOC_DELIVERY_URL +
+                _send_failure_email(confirmation_num, doc_response,
+                                    subject="Invalid status from doc response (" + str(
+                                        doc_response.status_code) + "): ")
+                LOGGER.error('Non-200 posting to ' + DOC_DELIVERY_URL +
                              '\nstatus_code: ' + str(doc_response.status_code) +
-                             '\ncontent: ' + doc_response.content)
+                             (('\ncontent: ' + doc_response.content) if LOG_CONTENT else ""))
 
         else:
-            logger.error('Success message not found while posting to ' + PRINT_DOCUMENT_URL +
-                         '\ncontent: ' + print_response.content)
+            _send_failure_email(confirmation_num, print_response, subject="Failure printing boarding pass: ")
+            LOGGER.error('Success message not found while posting to ' + PRINT_DOCUMENT_URL +
+                         (('\ncontent: ' + print_response.content) if LOG_CONTENT else ""))
     else:
-        logger.error('Non-200 posting to ' + PRINT_DOCUMENT_URL +
+        _send_failure_email(confirmation_num, print_response,
+                            subject="Invalid status from print response (" + str(print_response.status_code) + "): ")
+        LOGGER.error('Non-200 posting to ' + PRINT_DOCUMENT_URL +
                      '\nstatus_code: ' + str(print_response.status_code) +
-                     '\ncontent: ' + print_response.content)
+                     (('\ncontent: ' + print_response.content) if LOG_CONTENT else ""))
 
     raise Exception('Error checking in')
+
+
+def _send_failure_email(confirmation_num, response, subject="Failure checking in: ", to_emails=['holler@dvdhpkns.com']):
+    email_subject = subject + confirmation_num
+    non_html_email_body = subject + confirmation_num
+    send_mail(email_subject, non_html_email_body,
+              settings.EMAIL_HOST_USER,
+              to_emails, fail_silently=False,
+              html_message=response.content.replace("/assets", "http://southwest.com/assets"))

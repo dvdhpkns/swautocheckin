@@ -33,6 +33,11 @@ Add local host to sites
     # add a new site to sites - the ID of this should match the SITES value in settings
     from django.contrib.sites.models import Site
     new_site = Site.objects.create(domain='localhost:8000', name='localhost')
+    
+Gmail is used to send emails when things go wrong. To make this work you must add your gmail username and password to your path
+
+    export GMAIL_PASSWORD='my_pass'
+    export GMAIL_USER='username@gmail.com'
 
 ## Running
 

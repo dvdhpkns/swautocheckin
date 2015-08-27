@@ -15,7 +15,6 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 SITE_ID = 2
 
 # Quick-start development settings - unsuitable for production
@@ -24,7 +23,7 @@ SITE_ID = 2
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'y*@+yh4&7@^t=#uppg-77ovc!7o#2yboej%x3%e90n)r#soplh'
 
-########## APP CONFIGURATION
+# ----------- APP CONFIGURATION
 DJANGO_APPS = (
     # Default Django apps:
     'django.contrib.auth',
@@ -59,7 +58,7 @@ LOCAL_APPS = (
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
-########## END APP CONFIGURATION
+# --------------- END APP CONFIGURATION
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -191,3 +190,9 @@ BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
 BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
+# --------- email ------------ #
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = os.environ['GMAIL_USER']
+EMAIL_HOST_PASSWORD = os.environ['GMAIL_PASSWORD']
+EMAIL_PORT = 587
