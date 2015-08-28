@@ -36,7 +36,7 @@ def _retry_checkin(reservation):
         return False
 
 
-@task(ignore_result=False, default_retry_delay=3, max_retries=10)
+@task(ignore_result=False, default_retry_delay=3, max_retries=5)
 def checkin_job(reservation_id):
     from swautocheckin.models import Reservation
 
@@ -67,6 +67,10 @@ def checkin_job(reservation_id):
         return False
     elif response_code == RESPONSE_STATUS_RES_NOT_FOUND.code:
         LOGGER.error("Reservation not found, id: " + str(reservation.id))
+        _checkin_fail(reservation)
+        return False
+    elif response_code == RESPONSE_STATUS_RESERVATION_CANCELLED.code:
+        LOGGER.error("Reservation canceled, id: " + str(reservation.id))
         _checkin_fail(reservation)
         return False
     else:

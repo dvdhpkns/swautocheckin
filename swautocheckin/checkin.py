@@ -32,6 +32,7 @@ RESPONSE_STATUS_INVALID = ResponseStatus(-1, "The confirmation number entered is
 RESPONSE_STATUS_RES_NOT_FOUND = ResponseStatus(-2, "unable to retrieve your reservation from our database")
 RESPONSE_STATUS_INVALID_PASSENGER_NAME = ResponseStatus(-3, "The passenger name entered does not match one of the "
                                                             "passenger names listed under the confirmation number")
+RESPONSE_STATUS_RESERVATION_CANCELLED = ResponseStatus(-4, "Your reservation has been cancelled")
 RESPONSE_STATUS_UNKNOWN_FAILURE = ResponseStatus(-100, None)
 
 
@@ -81,6 +82,9 @@ def attempt_checkin(confirmation_num, first_name, last_name, email, do_checkin=T
         elif response.content.find(RESPONSE_STATUS_INVALID_PASSENGER_NAME.search_string) is not -1:
             LOGGER.info("Invalid passenger name " + confirmation_num)
             return RESPONSE_STATUS_INVALID_PASSENGER_NAME.code, None
+        elif response.content.find(RESPONSE_STATUS_RESERVATION_CANCELLED.search_string) is not -1:
+            LOGGER.info("Reservation canceled " + confirmation_num)
+            return RESPONSE_STATUS_RESERVATION_CANCELLED.code, None
         else:
             LOGGER.error('WTF: unhandled response.')
 
