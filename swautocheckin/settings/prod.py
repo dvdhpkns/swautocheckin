@@ -12,10 +12,9 @@ RAVEN_CONFIG = {
     # 'release': raven.fetch_git_sha(BASE_DIR),
 }
 
-
 # Parse database configuration from $DATABASE_URL
 DATABASES['default'] = dj_database_url.config()
 
 # Redis config
-BROKER_URL = os.environ['REDISGREEN_URL'],
-CELERY_RESULT_BACKEND = os.environ['REDISGREEN_URL']
+BROKER_URL = os.environ['REDIS_URL'],
+CELERY_RESULT_BACKEND = os.environ['REDIS_URL']

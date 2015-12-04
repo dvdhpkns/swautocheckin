@@ -136,9 +136,17 @@ def _complete_checkin(session, email, confirmation_num):
                              (('\ncontent: ' + doc_response.content) if LOG_CONTENT else ""))
 
         else:
-            _send_failure_email(confirmation_num, print_response, subject="Failure printing boarding pass: ")
-            LOGGER.error('Success message not found while posting to ' + PRINT_DOCUMENT_URL +
-                         (('\ncontent: ' + print_response.content) if LOG_CONTENT else ""))
+            if print_response.request.url == 'https://www.southwest.com/flight/viewCheckinDocument.html?int=':
+                send_mail("Boarding pass from Southwest auto-checkin for confirmation number: " + confirmation_num,
+                          "Successful auto-checkin for southwest flight " + confirmation_num,
+                          settings.EMAIL_HOST_USER,
+                          [email, 'swautocheckin@dvdhpkns.com'], fail_silently=False,
+                          html_message=print_response.content.replace("/assets", "http://southwest.com/assets"))
+                return None
+            else:
+                _send_failure_email(confirmation_num, print_response, subject="Failure printing boarding pass: ")
+                LOGGER.error('Success message not found while posting to ' + PRINT_DOCUMENT_URL +
+                             (('\ncontent: ' + print_response.content) if LOG_CONTENT else ""))
     else:
         _send_failure_email(confirmation_num, print_response,
                             subject="Invalid status from print response (" + str(print_response.status_code) + "): ")
