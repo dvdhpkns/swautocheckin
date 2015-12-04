@@ -12,6 +12,19 @@ RAVEN_CONFIG = {
     # 'release': raven.fetch_git_sha(BASE_DIR),
 }
 
+SENTRY_AUTO_LOG_STACKS = True
+
+LOGGING['handlers']['sentry'] = {
+    'level': 'DEBUG',
+    'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+}
+
+LOGGING['loggers']['celery'] = {
+    'level': 'WARNING',
+    'handlers': ['sentry'],
+    'propagate': False,
+}
+
 # Parse database configuration from $DATABASE_URL
 DATABASES['default'] = dj_database_url.config()
 
