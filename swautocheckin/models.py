@@ -51,7 +51,10 @@ class Reservation(models.Model):
 
     def create_task(self):
         # revoke task if one already exists
-        self.revoke_task()
+        try:
+            self.revoke_task()
+        except:
+            LOGGER.error("Error revoking task. Will continue to create new task.")
         LOGGER.info("Creating task for " + self.__str__())
         # schedule checkin for 24 hours before reservation
         checkin_time = self._get_checkin_time()
