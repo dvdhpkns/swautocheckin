@@ -80,4 +80,5 @@ def checkin_job(reservation_id):
 
 @task(ignore_result=False, default_retry_delay=3, max_retries=0)
 def error_task():
+    LOGGER.error("Entered error task. Will intentionally throw exception.")
     raise Exception("You've intentionally thrown a task exception.")
