@@ -20,8 +20,8 @@ LOGGING['handlers']['sentry'] = {
 }
 
 LOGGING['loggers']['celery'] = {
-    'level': 'WARNING',
-    'handlers': ['sentry'],
+    'level': 'DEBUG',
+    'handlers': ['sentry', 'console'],
     'propagate': False,
 }
 
