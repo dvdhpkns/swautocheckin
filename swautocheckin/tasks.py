@@ -49,33 +49,41 @@ def checkin_job(reservation_id):
                                                                reservation.passenger.last_name,
                                                                reservation.passenger.email)
 
-    if response_code == RESPONSE_STATUS_SUCCESS.code:
-        LOGGER.info("Successfully checked in for reservation: " + reservation.__str__())
-        LOGGER.info('Time: ' + str(datetime.now().time()))
-        LOGGER.info('Reservation time: ' + str(reservation.flight_time))
-        reservation.success = True
-        reservation.boarding_position = boarding_position
-        reservation.save()
-        return True
-    elif response_code == RESPONSE_STATUS_TOO_EARLY.code:
-        LOGGER.info('Time: ' + str(datetime.now().time()))
-        LOGGER.info('Reservation time: ' + str(reservation.flight_time))
-        _retry_checkin(reservation)
-    elif response_code == RESPONSE_STATUS_INVALID.code:
-        LOGGER.error("Invalid reservation, id: " + str(reservation.id))
-        _checkin_fail(reservation)
-        return False
-    elif response_code == RESPONSE_STATUS_RES_NOT_FOUND.code:
-        LOGGER.error("Reservation not found, id: " + str(reservation.id))
-        _checkin_fail(reservation)
-        return False
-    elif response_code == RESPONSE_STATUS_RESERVATION_CANCELLED.code:
-        LOGGER.error("Reservation canceled, id: " + str(reservation.id))
-        _checkin_fail(reservation)
-        return False
-    else:
-        LOGGER.error("Unknown error, retrying...")
-        _retry_checkin(reservation)
+    try:
+        if response_code == RESPONSE_STATUS_SUCCESS.code:
+            LOGGER.info("Successfully checked in for reservation: " + reservation.__str__())
+            LOGGER.info('Time: ' + str(datetime.now().time()))
+            LOGGER.info('Reservation time: ' + str(reservation.flight_time))
+            reservation.success = True
+            reservation.boarding_position = boarding_position
+            reservation.save()
+            return True
+        elif response_code == RESPONSE_STATUS_TOO_EARLY.code:
+            LOGGER.info('Time: ' + str(datetime.now().time()))
+            LOGGER.info('Reservation time: ' + str(reservation.flight_time))
+            _retry_checkin(reservation)
+        elif response_code == RESPONSE_STATUS_INVALID.code:
+            LOGGER.error("Invalid reservation, id: " + str(reservation.id))
+            _checkin_fail(reservation)
+            return False
+        elif response_code == RESPONSE_STATUS_RES_NOT_FOUND.code:
+            LOGGER.error("Reservation not found, id: " + str(reservation.id))
+            _checkin_fail(reservation)
+            return False
+        elif response_code == RESPONSE_STATUS_RESERVATION_CANCELLED.code:
+            LOGGER.error("Reservation canceled, id: " + str(reservation.id))
+            _checkin_fail(reservation)
+            return False
+        else:
+            LOGGER.error("Unknown error, retrying...")
+            _retry_checkin(reservation)
+    except Exception as e:
+        email_subject = "Exception while checking in..."
+        non_html_email_body = "Exception occurred while checking in for " + reservation.id + ": " + e.message
+        send_mail(email_subject, non_html_email_body,
+                  settings.EMAIL_HOST_USER,
+                  ['holler@dvdhpkns.com'], fail_silently=False,
+                  html_message=non_html_email_body)
 
 
 @task(ignore_result=False, default_retry_delay=3, max_retries=0)
