@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 import logging
+
+import pytz
 from celery.result import AsyncResult
 from django.db import models
 import uuid
@@ -65,14 +67,18 @@ class Reservation(models.Model):
         self.save()
 
     def _get_checkin_time(self):
+
         checkin_time = datetime.combine(
             (self.flight_date - timedelta(days=1)),  # Subtract 24 hours for checkin time
             self.flight_time
         )
-        # todo is utc 7 hours during daylight savings?
-        checkin_time += timedelta(hours=7)  # Add 7 hours for UTC
-        checkin_time -= timedelta(seconds=10)  # Start trying 30 seconds
-        return checkin_time
+        checkin_time -= timedelta(seconds=10)  # Start trying a few seconds early
+
+        # convert to utc
+        pst_timezone = pytz.timezone("America/Los_Angeles")
+        checkin_time_pst = pst_timezone.localize(checkin_time, is_dst=None)
+        checkin_time_utc = checkin_time_pst.astimezone(pytz.utc)
+        return checkin_time_utc
 
 
 @receiver(pre_delete, sender=Reservation)
