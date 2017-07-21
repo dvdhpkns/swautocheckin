@@ -35,6 +35,14 @@ RESPONSE_STATUS_INVALID_PASSENGER_NAME = ResponseStatus(-3, "The passenger name 
 RESPONSE_STATUS_RESERVATION_CANCELLED = ResponseStatus(-4, "Your reservation has been cancelled")
 RESPONSE_STATUS_UNKNOWN_FAILURE = ResponseStatus(-100, None)
 
+POST_HEADERS = requests.utils.default_headers().update({
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+    "Content-Type": "application/x-www-form-urlencoded",
+    "Host": "www.southwest.com",
+    "Origin": "https://www.southwest.com",
+    "Referer": "https://www.southwest.com",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"
+})
 
 def _post_to_southwest_checkin(confirmation_num, first_name, last_name):
     """
@@ -49,10 +57,10 @@ def _post_to_southwest_checkin(confirmation_num, first_name, last_name):
     payload = {
         'confirmationNumber': confirmation_num,
         'firstName': first_name,
-        'lastName': last_name,
-        'submitButton': 'Check In'
+        'lastName': last_name
     }
-    response = session.post(SOUTHWEST_CHECKIN_URL, data=payload)
+
+    response = session.post(SOUTHWEST_CHECKIN_URL, data=payload, headers=POST_HEADERS)
 
     return response, session
 
@@ -101,7 +109,7 @@ def attempt_checkin(confirmation_num, first_name, last_name, email, do_checkin=T
 
 
 def _complete_checkin(session, email, confirmation_num):
-    print_response = session.post(PRINT_DOCUMENT_URL, data=PRINT_PAYLOAD)
+    print_response = session.post(PRINT_DOCUMENT_URL, data=PRINT_PAYLOAD, headers=POST_HEADERS)
 
     if print_response.status_code is 200:
         if print_response.content.find("You are Checked In") is not -1:
@@ -117,7 +125,7 @@ def _complete_checkin(session, email, confirmation_num):
                 # 'book_now':
             }
 
-            doc_response = session.post(DOC_DELIVERY_URL, data=doc_payload)
+            doc_response = session.post(DOC_DELIVERY_URL, data=doc_payload, headers=POST_HEADERS)
 
             if doc_response.status_code is 200:
                 if doc_response.content.find("Boarding Pass Confirmation") is not -1:
