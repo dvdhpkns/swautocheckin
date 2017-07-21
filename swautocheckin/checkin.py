@@ -44,6 +44,7 @@ POST_HEADERS = requests.utils.default_headers().update({
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"
 })
 
+
 def _post_to_southwest_checkin(confirmation_num, first_name, last_name):
     """
     :param confirmation_num:

@@ -5,11 +5,11 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render, get_object_or_404, render_to_response
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
+from swautocheckin import tasks
 
 from swautocheckin.forms import EmailForm, ReservationForm
 
 from swautocheckin.models import Passenger, Reservation, create_reservation
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -77,7 +77,9 @@ def success_view(request, reservation_uuid):
     })
 
 
-def force_error_view(request, task=False):
+def force_error_view(request):
+    if request.GET.get('task', False):
+        tasks.error_task.delay()
     LOGGER.error("Error view called")
     raise Exception("You've intentionally thrown an exception.")
 
