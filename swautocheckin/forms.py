@@ -1,8 +1,12 @@
+import logging
+
 from django import forms
 from swautocheckin import checkin
 from swautocheckin.checkin import RESPONSE_STATUS_INVALID, RESPONSE_STATUS_RES_NOT_FOUND, \
     RESPONSE_STATUS_SUCCESS, \
     RESPONSE_STATUS_TOO_EARLY, RESPONSE_STATUS_INVALID_PASSENGER_NAME
+
+LOGGER = logging.getLogger(__name__)
 
 
 class EmailForm(forms.Form):
@@ -96,13 +100,16 @@ class ReservationForm(forms.Form):
             self._errors["return_flight_time"] = self.error_class([msg])
 
         if first_name and last_name and conf_num:
-            response_code, boarding_position = checkin.attempt_checkin(conf_num, first_name, last_name, email, do_checkin=False)
+            response_code, boarding_position = checkin.attempt_checkin(conf_num, first_name, last_name, email,
+                                                                       do_checkin=False)
             if response_code is RESPONSE_STATUS_INVALID.code:
                 msg = u"Invalid confirmation code."
                 self._errors["confirmation_num"] = self.error_class([msg])
                 del cleaned_data["confirmation_num"]
             elif response_code is RESPONSE_STATUS_RES_NOT_FOUND.code:
-                raise forms.ValidationError("Reservation not found.")
+                # used to mean that the res didn't exist, but now it is used for too early as well, so create checkin
+                LOGGER.info("Reservation not found...")
+                pass
             elif response_code is RESPONSE_STATUS_INVALID_PASSENGER_NAME.code:
                 raise forms.ValidationError("Passenger name does not match confirmation code.")
             elif response_code is RESPONSE_STATUS_SUCCESS.code:
